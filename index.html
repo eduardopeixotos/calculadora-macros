@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Macros e Treino - Eduardo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%; max-width: 450px; }
+        h1 { font-size: 1.5rem; margin-bottom: 20px; text-align: center; color: #fff; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.9rem; margin-bottom: 5px; color: #b0b0b0; }
+        input, select { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 6px; color: #fff; font-size: 1rem; }
+        select option { background: #2a2a2a; color: #fff; }
+        button { width: 100%; padding: 12px; background: #00bcd4; border: none; border-radius: 6px; color: #121212; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        button:hover { background: #00acc1; }
+        .results { margin-top: 25px; border-top: 1px solid #3a3a3a; paddingTop: 15px; }
+        .result-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.95rem; }
+        .highlight { color: #00bcd4; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Calculadora de Macros</h1>
+        
+        <div class="input-group">
+            <label for="peso">Peso (kg)</label>
+            <input type="number" id="peso" value="85">
+        </div>
+        
+        <div class="input-group">
+            <label for="altura">Altura (cm)</label>
+            <input type="number" id="altura" value="177">
+        </div>
+        
+        <div class="input-group">
+            <label for="idade">Idade (anos)</label>
+            <input type="number" id="idade" value="34">
+        </div>
+
+        <div class="input-group">
+            <label for="treino">Frequência de Treino</label>
+            <select id="treino">
+                <option value="2">2 vezes por semana</option>
+                <option value="3">3 vezes por semana</option>
+                <option value="4">4 vezes por semana</option>
+                <option value="5" selected>5 vezes por semana</option>
+                <option value="6">6 vezes por semana</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="biotipo">Biotipo</label>
+            <select id="biotipo">
+                <option value="ectomorfo">Ectomorfo (Mais carboidrato)</option>
+                <option value="mesomorfo" selected>Mesomorfo (Equilibrado)</option>
+                <option value="endomorfo">Endomorfo (Menos carboidrato / Mais gordura)</option>
+            </select>
+        </div>
+
+        <button onclick="calcularMacros()">Calcular Meta</button>
+
+        <div class="results" id="resultados" style="display: none;">
+            <div class="result-item"><span>Gasto Calórico Diário (TDEE):</span> <span id="tdee" class="highlight">-</span></div>
+            <div class="result-item"><span>Meta Calórica (Cutting):</span> <span id="calorias" class="highlight">-</span></div>
+            <div class="result-item"><span>Proteínas:</span> <span id="prot" class="highlight">-</span></div>
+            <div class="result-item"><span>Gorduras:</span> <span id="gord" class="highlight">-</span></div>
+            <div class="result-item"><span>Carboidratos:</span> <span id="carb" class="highlight">-</span></div>
+        </div>
+    </div>
+
+    <script>
+        function calcularMacros() {
+            const peso = parseFloat(document.getElementById('peso').value);
+            const altura = parseFloat(document.getElementById('altura').value);
+            const idade = parseInt(document.getElementById('idade').value);
+            const freqTreino = parseInt(document.getElementById('treino').value);
+            const biotipo = document.getElementById('biotipo').value;
+
+            // Fórmula de Harris-Benedict (Homens) para TMB base
+            const tmb = 88.36 + (13.4 * peso) + (4.8 * altura) - (5.7 * idade);
+
+            // Fator de atividade ajustado pela frequência de treinos semanais
+            let fatorAtividade = 1.2; // Sedentário base
+            if (freqTreino === 2) fatorAtividade = 1.375;
+            else if (freqTreino === 3) fatorAtividade = 1.45;
+            else if (freqTreino === 4) fatorAtividade = 1.55;
+            else if (freqTreino === 5) fatorAtividade = 1.65;
+            else if (freqTreino >= 6) fatorAtividade = 1.725;
+
+            const gastoDiario = Math.round(tmb * fatorAtividade);
+            const metaCalorias = gastoDiario - 400; // Déficit padrão para secar
+
+            // Proteína fixa focada em preservação muscular (2.0g por kg)
+            const proteinaGramas = Math.round(peso * 2.0);
+
+            // Ajuste de gordura e carbo conforme o biotipo
+            let gorduraGramas, carboidratoGramas;
+
+            if (biotipo === 'ectomorfo') {
+                // Ectomorfos lidam bem com mais carboidratos
+                gorduraGramas = Math.round(peso * 0.9);
+            } else if (biotipo === 'mesomorfo') {
+                // Equilibrado
+                gorduraGramas = Math.round(peso * 1.0);
+            } else {
+                // Endomorfo (geralmente respondem melhor a um pouco mais de gordura e menos carbo)
+                gorduraGramas = Math.round(peso * 1.1);
+            }
+
+            const caloriasProteina = proteinaGramas * 4;
+            const caloriasGordura = gorduraGramas * 9;
+            carboidratoGramas = Math.max(0, Math.round((metaCalorias - (caloriasProteina + caloriasGordura)) / 4));
+
+            // Exibindo na tela
+            document.getElementById('tdee').innerText = gastoDiario + ' kcal';
+            document.getElementById('calorias').innerText = metaCalorias + ' kcal';
+            document.getElementById('prot').innerText = proteinaGramas + 'g';
+            document.getElementById('gord').innerText = gorduraGramas + 'g';
+            document.getElementById('carb').innerText = carboidratoGramas + 'g';
+
+            document.getElementById('resultados').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
